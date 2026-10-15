@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Игра «Мир профессий»</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    font-family: 'Comic Sans MS', 'Nunito', Arial, sans-serif;
+    background: linear-gradient(135deg, #a8d8ff 0%, #d4a8ff 50%, #ffe680 100%);
+    background-size: 200% 200%;
+    animation: bgShift 18s ease infinite;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(10px, 2vh, 25px) clamp(8px, 2vw, 20px) clamp(15px, 4vh, 50px);
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    max-width: min(1400px, 98vw);
+    flex: 1;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    will-change: opacity, transform;
+  }
+  .screen.active { display: flex; animation: screenIn 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  @keyframes screenIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .corner-whale {
+    position: absolute;
+    top: clamp(14px, 2.5vh, 26px);
+    right: -5px;
+    width: clamp(48px, 8vmin, 100px);
+    height: clamp(48px, 8vmin, 100px);
+    z-index: 5;
+    pointer-events: none;
+    background: #fff;
+    border-radius: 50%;
+    padding: 8px;
+    object-fit: contain;
+    box-shadow:
+      0 6px 0 rgba(0,0,0,0.12),
+      0 8px 18px rgba(0,0,0,0.18),
+      inset 0 0 0 3px #ffffff;
+    border: 3px solid #f7c948;
+    animation: whaleFloat 5s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  #screen-puzzle .corner-whale {
+    right: clamp(30px, 6vw, 80px);
+  }
+
+  @keyframes whaleFloat {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-7px) rotate(3deg); }
+  }
+
+  h1 {
+    color: #1a1a1a;
+    font-size: clamp(22px, 3.6vmin, 54px);
+    text-align: center;
+    margin-bottom: clamp(6px, 1vh, 10px);
+    text-shadow: 3px 3px 0 #fff, 5px 5px 0 rgba(0,0,0,0.1);
+    line-height: 1.1;
+    padding: 0 clamp(50px, 10vw, 110px) 0 clamp(10px, 3vw, 40px);
+    flex-shrink: 0;
+  }
+
+  h1 .accent { color: #16a34a; display: inline-block; animation: wiggle 3s ease-in-out infinite; }
+
+  @keyframes wiggle { 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
+
+  .subtitle {
+    color: #333;
+    font-size: clamp(13px, 1.8vmin, 24px);
+    text-align: center;
+    margin-bottom: clamp(12px, 2vh, 25px);
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+    padding: 0 15px;
+    flex-shrink: 0;
+  }
+
+  .motto {
+    display: inline-block;
+    background: linear-gradient(180deg, #fff8e1 0%, #ffeaa7 100%);
+    color: #b34700;
+    font-size: clamp(15px, 2.1vmin, 28px);
+    font-weight: bold;
+    font-style: italic;
+    text-align: center;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 0 rgba(255,255,255,0.6);
+    margin: 0 auto clamp(6px, 1vh, 14px);
+    padding: clamp(8px, 1.3vh, 14px) clamp(20px, 3vw, 38px);
+    border-radius: 50px;
+    border: 3px solid #f39c12;
+    box-shadow:
+      0 5px 0 #d68910,
+      0 8px 20px rgba(243, 156, 18, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.6);
+    position: relative;
+    flex-shrink: 0;
+    animation: mottoPulse 3s ease-in-out infinite;
+    max-width: 94vw;
+    will-change: transform, box-shadow;
+  }
+
+  .final-quote {
+    background: linear-gradient(180deg, #f3e5ff 0%, #e0c3fc 100%);
+    border-radius: 25px;
+    padding: clamp(14px, 2.2vh, 26px) clamp(22px, 3.5vw, 40px);
+    margin: 0 auto;
+    max-width: min(800px, 94vw);
+    box-shadow:
+      0 10px 0 #6c3483,
+      0 14px 30px rgba(108, 52, 131, 0.35),
+      inset 0 0 25px rgba(255, 255, 255, 0.6);
+    border: 4px solid #8e44ad;
+    animation: quoteGlow 3.2s ease-in-out infinite;
+    flex-shrink: 0;
+    position: relative;
+    will-change: transform, box-shadow;
+  }
+
+  .final-quote .quote {
+    font-size: clamp(18px, 2.6vmin, 36px);
+    color: #4a1f5c;
+    font-weight: bold;
+    line-height: 1.3;
+    text-shadow: 2px 2px 0 #fff, 3px 3px 0 rgba(255,255,255,0.5);
+    letter-spacing: 0.5px;
+  }
+
+  .final-quote .emoji-line {
+    font-size: clamp(20px, 3vmin, 40px);
+    margin-bottom: clamp(4px, 0.8vh, 12px);
+    display: block;
+    filter: drop-shadow(1px 2px 0 rgba(0,0,0,0.15));
+    animation: wiggle 3s ease-in-out infinite;
+  }
+
+  @keyframes mottoPulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 5px 0 #d68910, 0 8px 20px rgba(243, 156, 18, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+    50% {
+      transform: scale(1.03);
+      box-shadow: 0 5px 0 #d68910, 0 12px 28px rgba(243, 156, 18, 0.6), inset 0 0 28px rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  @keyframes quoteGlow {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 10px 0 #6c3483, 0 14px 30px rgba(108, 52, 131, 0.35), inset 0 0 25px rgba(255, 255, 255, 0.6);
+    }
+    50% {
+      transform: scale(1.02);
+      box-shadow: 0 10px 0 #6c3483, 0 18px 40px rgba(108, 52, 131, 0.55), inset 0 0 35px rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  .next-btn {
+    background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: clamp(10px, 1.6vh, 15px) clamp(24px, 3vw, 40px);
+    font-family: inherit;
+    font-size: clamp(14px, 1.6vmin, 21px);
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #1e8449, 0 10px 24px rgba(30,132,73,0.35);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px;
+    animation: pulse 2.6s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .next-btn::before { content: '➡️'; font-size: 1.05em; }
+  .next-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 9px 0 #1e8449, 0 14px 30px rgba(30,132,73,0.45); }
+  .next-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1e8449; }
+
+  .music-btn {
+    position: fixed;
+    top: clamp(8px, 2vh, 20px);
+    left: clamp(8px, 2vw, 20px);
+    z-index: 200;
+    width: clamp(42px, 6vmin, 54px);
+    height: clamp(42px, 6vmin, 54px);
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(180deg, #f7c948 0%, #f39c12 100%);
+    color: #fff;
+    font-size: clamp(18px, 3vmin, 25px);
+    cursor: pointer;
+    box-shadow: 0 5px 0 #c87f0a, 0 8px 20px rgba(0,0,0,0.25);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .music-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 7px 0 #c87f0a, 0 10px 22px rgba(0,0,0,0.3); }
+  .music-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c87f0a; }
+  .music-btn.playing {
+    background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%);
+    box-shadow: 0 5px 0 #1e8449;
+    animation: musicPulse 2s ease-in-out infinite;
+  }
+  @keyframes musicPulse {
+    0%, 100% { box-shadow: 0 5px 0 #1e8449, 0 0 0 0 rgba(46, 204, 113, 0.5); }
+    50%      { box-shadow: 0 5px 0 #1e8449, 0 0 0 12px rgba(46, 204, 113, 0); }
+  }
+
+  .fullscreen-btn {
+    position: fixed;
+    top: clamp(8px, 2vh, 20px);
+    left: calc(clamp(8px, 2vw, 20px) + clamp(42px, 6vmin, 54px) + 12px);
+    z-index: 200;
+    height: clamp(42px, 6vmin, 54px);
+    padding: 0 clamp(14px, 2vmin, 22px);
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(180deg, #8e44ad 0%, #6c3483 100%);
+    color: #fff;
+    font-family: inherit;
+    font-size: clamp(13px, 1.8vmin, 18px);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #4a235a, 0 8px 20px rgba(0,0,0,0.25);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, background 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .fullscreen-btn .fs-icon { font-size: 1.15em; line-height: 1; }
+  .fullscreen-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 7px 0 #4a235a, 0 10px 22px rgba(0,0,0,0.3); }
+  .fullscreen-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #4a235a; }
+  .fullscreen-btn.is-fullscreen {
+    background: linear-gradient(180deg, #e67e22 0%, #d35400 100%);
+    box-shadow: 0 5px 0 #a04000, 0 8px 20px rgba(0,0,0,0.25);
+  }
+  .fullscreen-btn.is-fullscreen:hover { box-shadow: 0 7px 0 #a04000, 0 10px 22px rgba(0,0,0,0.3); }
+  .fullscreen-btn.is-fullscreen:active { box-shadow: 0 2px 0 #a04000; }
+
+  @media (max-width: 620px) {
+    .fullscreen-btn .fs-label { display: none; }
+    .fullscreen-btn { padding: 0 clamp(12px, 2vmin, 16px); }
+  }
+
+  body:fullscreen, body:-webkit-full-screen {
+    padding: clamp(6px, 1vh, 14px) clamp(10px, 2vw, 30px) clamp(8px, 2vh, 20px);
+    overflow: hidden;
+    justify-content: center;
+  }
+  body:fullscreen .screen, body:-webkit-full-screen .screen {
+    max-width: min(1600px, 98vw);
+    justify-content: center;
+  }
+  body:fullscreen img, body:-webkit-full-screen img { object-fit: contain; }
+
+  .start-wrapper {
+    text-align: center;
+    padding: clamp(10px, 2vh, 20px) 0;
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    gap: clamp(8px, 1.5vh, 18px);
+  }
+
+  .start-title {
+    font-size: clamp(24px, 4vmin, 60px);
+    color: #1a1a1a;
+    text-shadow: 4px 4px 0 #fff, 8px 8px 0 rgba(0,0,0,0.1);
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .start-title .game-name { color: #16a34a; display: inline-block; animation: wiggle 3s ease-in-out infinite; }
+
+  .board-wrapper {
+    max-width: min(1100px, 92vw);
+    width: 100%;
+    margin: clamp(10px, 2vh, 24px) auto clamp(15px, 3vh, 30px);
+    background: #fff;
+    border-radius: 30px;
+    padding: clamp(8px, 1.5vmin, 15px);
+    box-shadow: 0 12px 0 rgba(0,0,0,0.15);
+    border: clamp(4px, 0.7vmin, 6px) solid #27ae60;
+    position: relative;
+    animation: pop 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 1;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .board-wrapper::before {
+    content: '🎲'; position: absolute; top: -35px; left: -30px;
+    font-size: clamp(38px, 6vmin, 60px); animation: wiggle 2.4s ease-in-out infinite;
+    filter: drop-shadow(2px 2px 0 #fff);
+  }
+  .board-wrapper::after {
+    content: '⭐'; position: absolute; bottom: -30px; right: -30px;
+    font-size: clamp(38px, 6vmin, 60px); animation: wiggle 2.4s ease-in-out infinite reverse;
+    filter: drop-shadow(2px 2px 0 #fff);
+  }
+
+  .board-img {
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    object-fit: contain;
+    display: block;
+    border-radius: 20px;
+  }
+
+  .start-btn {
+    background: linear-gradient(180deg, #ff8c42 0%, #e74c3c 100%);
+    color: #fff;
+    border: none;
+    border-radius: 80px;
+    padding: clamp(14px, 2.2vh, 22px) clamp(40px, 8vw, 80px);
+    font-size: clamp(20px, 3.4vmin, 42px);
+    font-family: inherit;
+    font-weight: bold;
+    letter-spacing: 3px;
+    cursor: pointer;
+    box-shadow: 0 10px 0 #a93226, 0 15px 35px rgba(0,0,0,0.3);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 2;
+    animation: pulse 2.4s ease-in-out infinite;
+    display: inline-block;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .start-btn::before { content: '▶'; margin-right: 15px; display: inline-block; transition: transform 0.3s; }
+  .start-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 13px 0 #a93226, 0 18px 40px rgba(0,0,0,0.4); }
+  .start-btn:hover::before { transform: translateX(6px); }
+  .start-btn:active { transform: translateY(7px); box-shadow: 0 3px 0 #a93226; }
+
+  .start-tip {
+    margin-top: 0;
+    color: #1a1a1a;
+    font-size: clamp(13px, 1.6vmin, 21px);
+    background: rgba(255,255,255,0.9);
+    padding: clamp(8px, 1.2vh, 12px) clamp(15px, 2.5vw, 25px);
+    border-radius: 50px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    font-weight: bold;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  #screen-puzzle {
+    justify-content: center;
+    align-items: center;
+    gap: clamp(6px, 1.2vh, 16px);
+    padding: clamp(4px, 1vh, 12px) 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  #screen-puzzle > h1 { margin-bottom: 0; flex-shrink: 0; }
+
+  #screen-puzzle .task-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: clamp(8px, 1.4vh, 16px) clamp(16px, 2.5vw, 28px);
+    max-width: min(950px, 94vw);
+    margin: 0 auto;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+    border: 3px dashed #f39c12;
+    text-align: center;
+    flex-shrink: 0;
+    animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  #screen-puzzle .task-text {
+    font-size: clamp(14px, 1.9vmin, 22px);
+    color: #1a1a1a;
+    line-height: 1.5;
+    margin: 0;
+    font-weight: bold;
+  }
+  #screen-puzzle .task-text b { color: #e74c3c; }
+
+  .puzzle-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: min(1300px, 98vw);
+    width: 100%;
+    background: #fff;
+    border-radius: 25px;
+    padding: clamp(4px, 0.8vmin, 8px);
+    box-shadow: 0 10px 0 rgba(0,0,0,0.15);
+    border: clamp(3px, 0.6vmin, 5px) solid #27ae60;
+    position: relative;
+    animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin: clamp(30px, 4.5vh, 46px) auto 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .puzzle-wrapper .icon-magnifier,
+  .puzzle-wrapper .icon-magnifier2 {
+    position: absolute;
+    top: -34px;
+    font-size: clamp(38px, 5.5vmin, 60px);
+    animation: wiggle 2.4s ease-in-out infinite;
+    filter: drop-shadow(2px 3px 0 #fff) drop-shadow(0 0 3px rgba(0,0,0,0.15));
+    z-index: 3;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+  }
+  .puzzle-wrapper .icon-magnifier  { left: -18px; }
+  .puzzle-wrapper .icon-magnifier2 { right: -18px; animation-direction: reverse; }
+
+  .puzzle-img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 15px;
+  }
+
+  #screen-puzzle .btn-row { flex-shrink: 0; margin-top: 0; }
+
+  #screen-menu { justify-content: center; align-items: center; }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(12px, 2vmin, 22px);
+    margin: auto;
+    width: 100%;
+    max-width: min(1150px, 96vw);
+    align-content: center;
+  }
+
+  .prof-card {
+    background: #fff;
+    border-radius: 22px;
+    padding: clamp(10px, 1.5vh, 15px) clamp(8px, 1.2vw, 12px) clamp(12px, 2vh, 18px);
+    text-align: center;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+    border: 4px solid transparent;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    animation: cardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    will-change: transform;
+  }
+  .prof-card:nth-child(1) { animation-delay: 0.05s; }
+  .prof-card:nth-child(2) { animation-delay: 0.10s; }
+  .prof-card:nth-child(3) { animation-delay: 0.15s; }
+  .prof-card:nth-child(4) { animation-delay: 0.20s; }
+  .prof-card:nth-child(5) { animation-delay: 0.25s; }
+  .prof-card:nth-child(6) { animation-delay: 0.30s; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .prof-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 14px 0 rgba(0,0,0,0.15); }
+
+  .prof-card .prof-img {
+    width: 100%;
+    max-width: clamp(90px, 12vmin, 150px);
+    height: clamp(90px, 12vmin, 150px);
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 8px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .prof-card:hover .prof-img { transform: scale(1.08) rotate(-2deg); }
+
+  .prof-card .prof-name {
+    font-size: clamp(15px, 1.8vmin, 22px);
+    color: #1a1a1a;
+    font-weight: bold;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .color-btns { display: flex; gap: 10px; justify-content: center; }
+
+  .color-btn {
+    width: clamp(44px, 6.5vmin, 60px);
+    height: clamp(44px, 6.5vmin, 60px);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s, filter 0.22s;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.25), 0 6px 14px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15), inset 0 3px 6px rgba(255,255,255,0.4);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+
+  .color-btn.purple {
+    background: radial-gradient(circle at 30% 25%, #c39bd3 0%, #a569bd 40%, #8e44ad 75%, #6c3483 100%);
+  }
+  .color-btn.green {
+    background: radial-gradient(circle at 30% 25%, #7ee8a8 0%, #2ecc71 40%, #27ae60 75%, #1e8449 100%);
+  }
+
+  .color-btn::after {
+    content: '';
+    position: absolute;
+    top: 12%;
+    left: 18%;
+    width: 32%;
+    height: 26%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .color-btn:hover:not(.done):not(:disabled) {
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 8px 0 rgba(0,0,0,0.25), 0 10px 20px rgba(0,0,0,0.3), inset 0 -3px 6px rgba(0,0,0,0.15), inset 0 3px 6px rgba(255,255,255,0.4);
+    filter: brightness(1.1);
+  }
+  .color-btn:active:not(.done):not(:disabled) {
+    transform: translateY(2px) scale(0.96);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3), inset 0 -1px 3px rgba(0,0,0,0.2);
+  }
+
+  .color-btn.done {
+    cursor: default;
+    filter: grayscale(0.7) brightness(0.9);
+    opacity: 0.75;
+    transform: scale(0.92);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.2), inset 0 0 0 3px rgba(255,255,255,0.8);
+  }
+  .color-btn.done::before {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: clamp(22px, 3.5vmin, 32px);
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+  }
+  .color-btn.done::after { opacity: 0; }
+
+  .progress-bar {
+    background: #fff;
+    border-radius: 50px;
+    padding: clamp(10px, 1.6vh, 14px) clamp(18px, 3vw, 28px);
+    text-align: center;
+    font-size: clamp(14px, 1.7vmin, 22px);
+    color: #1a1a1a;
+    font-weight: bold;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.12);
+    margin: 10px auto 0;
+    transition: transform 0.3s;
+  }
+
+  #screen-task { justify-content: center; align-items: center; }
+
+  .task-container {
+    width: 100%;
+    max-width: min(1300px, 98vw);
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .task-header {
+    color: #fff;
+    padding: clamp(10px, 1.8vh, 15px) clamp(15px, 2.5vw, 25px);
+    border-radius: 22px 22px 0 0;
+    font-size: clamp(16px, 2.2vmin, 28px);
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    animation: headerIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.25);
+    letter-spacing: 0.5px;
+  }
+  @keyframes headerIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .task-header.purple { background: linear-gradient(180deg, #a569bd 0%, #8e44ad 100%); box-shadow: 0 4px 0 #6c3483; }
+  .task-header.green  { background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); box-shadow: 0 4px 0 #1e8449; }
+
+  .header-img {
+    width: clamp(42px, 5.5vmin, 60px);
+    height: clamp(42px, 5.5vmin, 60px);
+    object-fit: contain;
+    background: #fff;
+    border-radius: 50%;
+    padding: 3px;
+  }
+
+  .task-body {
+    background: #fff;
+    border-radius: 0 0 22px 22px;
+    padding: clamp(15px, 2.5vh, 25px);
+    box-shadow: 0 8px 0 rgba(0,0,0,0.12);
+    flex: 1;
+    animation: bodyIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes bodyIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .task-question {
+    font-size: clamp(16px, 2.1vmin, 26px);
+    color: #1a1a1a;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: clamp(15px, 2.5vh, 22px);
+    line-height: 1.5;
+    letter-spacing: 0.3px;
+  }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(12px, 2vmin, 18px);
+    margin-bottom: clamp(15px, 2.5vh, 22px);
+  }
+
+  .item {
+    background: #f5f5f5;
+    border-radius: 18px;
+    padding: clamp(12px, 2vh, 18px) clamp(10px, 1.5vw, 15px);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s, opacity 0.4s, box-shadow 0.25s;
+    user-select: none;
+    border: 3px solid transparent;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: itemIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    will-change: transform, opacity;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .item:nth-child(1) { animation-delay: 0.05s; }
+  .item:nth-child(2) { animation-delay: 0.10s; }
+  .item:nth-child(3) { animation-delay: 0.15s; }
+  .item:nth-child(4) { animation-delay: 0.20s; }
+  .item:nth-child(5) { animation-delay: 0.25s; }
+  .item:nth-child(6) { animation-delay: 0.30s; }
+
+  @keyframes itemIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.92); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .item:hover:not(.correct):not(.removed):not(.wrong) {
+    transform: translateY(-4px) scale(1.03);
+    background: #ebebeb;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+  }
+
+  .item .emoji { font-size: clamp(36px, 6vmin, 68px); display: block; line-height: 1; margin-bottom: 8px; }
+
+  .item .label {
+    font-size: clamp(14px, 1.7vmin, 21px);
+    color: #111;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 0 #fff;
+  }
+
+  .item.correct {
+    background: linear-gradient(180deg, #c8f0c0 0%, #a8e6a3 100%);
+    border-color: #27ae60;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 6px 0 #1e8449, 0 0 0 4px rgba(46, 204, 113, 0.25);
+  }
+  .item.correct::after {
+    content: '✅';
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    font-size: 28px;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(1px 1px 0 #fff);
+  }
+
+  .item.wrong {
+    background: linear-gradient(180deg, #ffc4c4 0%, #ffb3b3 100%);
+    border-color: #e74c3c;
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+  .item.wrong::after {
+    content: '❌';
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    font-size: 28px;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(1px 1px 0 #fff);
+  }
+
+  .item.removed {
+    opacity: 0;
+    transform: scale(0.3) rotate(45deg);
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .tool-svg {
+    width: clamp(60px, 9vmin, 100px);
+    height: clamp(60px, 9vmin, 100px);
+    display: block;
+    margin: 0 auto 8px;
+  }
+
+  .tool-img {
+    width: clamp(120px, 18vmin, 200px);
+    height: clamp(120px, 18vmin, 200px);
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 10px;
+    border-radius: 12px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+  }
+
+  .order-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(14px, 2.2vmin, 22px);
+    justify-content: center;
+    margin-bottom: clamp(15px, 2.5vh, 22px);
+    padding: clamp(15px, 2.5vh, 25px) clamp(12px, 2vw, 18px);
+    background: linear-gradient(180deg, #fffaf0 0%, #fff5e0 100%);
+    border-radius: 18px;
+    border: 3px dashed #f39c12;
+    min-height: 260px;
+    align-items: center;
+  }
+
+  .order-item {
+    background: #fff;
+    border-radius: 20px;
+    padding: clamp(12px, 2vh, 18px) clamp(12px, 1.8vw, 18px);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s, opacity 0.4s, box-shadow 0.25s;
+    user-select: none;
+    border: 4px solid #f39c12;
+    position: relative;
+    min-width: clamp(200px, 26vw, 280px);
+    max-width: clamp(230px, 30vw, 320px);
+    flex: 0 0 auto;
+    box-shadow: 0 6px 0 rgba(243, 156, 18, 0.3);
+    animation: itemIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .order-item:nth-child(1) { animation-delay: 0.05s; }
+  .order-item:nth-child(2) { animation-delay: 0.12s; }
+  .order-item:nth-child(3) { animation-delay: 0.19s; }
+  .order-item:nth-child(4) { animation-delay: 0.26s; }
+
+  .order-item:hover:not(.ordered):not(.wrong) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 0 rgba(243, 156, 18, 0.4);
+  }
+
+  .order-item .emoji { font-size: clamp(30px, 4.5vmin, 54px); display: block; line-height: 1; margin-bottom: 6px; }
+
+  .order-item .label {
+    font-size: clamp(14px, 1.7vmin, 21px);
+    color: #111;
+    font-weight: bold;
+    line-height: 1.3;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 0 #fff;
+  }
+
+  .order-item .tool-img {
+    width: clamp(180px, 26vmin, 300px);
+    height: clamp(180px, 26vmin, 300px);
+    margin-bottom: 12px;
+    border-radius: 14px;
+  }
+
+  .order-item.ordered {
+    background: linear-gradient(180deg, #c8f0c0 0%, #a8e6a3 100%);
+    border-color: #27ae60;
+    cursor: default;
+    box-shadow: 0 5px 0 #1e8449, 0 0 0 5px rgba(46, 204, 113, 0.25);
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .order-item.ordered::before {
+    content: attr(data-order);
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%);
+    color: #fff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 26px;
+    box-shadow: 0 4px 0 #1e8449;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+  }
+
+  .order-item.wrong {
+    background: linear-gradient(180deg, #ffc4c4 0%, #ffb3b3 100%);
+    border-color: #e74c3c;
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    box-shadow: 0 5px 0 #c0392b;
+  }
+  .order-item.wrong::after {
+    content: '❌';
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    font-size: 40px;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(1px 1px 0 #fff);
+  }
+
+  .order-hint {
+    text-align: center;
+    font-size: clamp(14px, 1.7vmin, 21px);
+    color: #d35400;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 0 #fff;
+  }
+
+  .btn-row { text-align: center; margin-top: 5px; }
+
+  .btn {
+    background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: clamp(10px, 1.6vh, 13px) clamp(20px, 3vw, 34px);
+    font-size: clamp(14px, 1.7vmin, 22px);
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #1e8449;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    display: inline-block;
+    margin: 5px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 7px 0 #1e8449; }
+  .btn:hover::before { opacity: 1; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e8449; }
+  .btn.blue { background: linear-gradient(180deg, #3498db 0%, #2980b9 100%); box-shadow: 0 5px 0 #2471a3; }
+  .btn.blue:hover { box-shadow: 0 7px 0 #2471a3; }
+  .btn.purple { background: linear-gradient(180deg, #a569bd 0%, #8e44ad 100%); box-shadow: 0 5px 0 #6c3483; }
+  .btn.purple:hover { box-shadow: 0 7px 0 #6c3483; }
+
+  .success-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .success-overlay.show { display: flex; opacity: 1; animation: fadeIn 0.35s ease; }
+
+  .success-box {
+    background: #fff;
+    border-radius: 30px;
+    padding: clamp(25px, 4vh, 40px) clamp(25px, 5vw, 55px);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    animation: successIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 6px solid #27ae60;
+    max-width: min(600px, 92vw);
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes successIn {
+    from { opacity: 0; transform: scale(0.7) translateY(30px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .success-box .big-emoji {
+    font-size: clamp(45px, 8vmin, 70px);
+    display: block;
+    margin-bottom: 15px;
+    animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+  }
+  .success-box h2 {
+    color: #16a34a;
+    font-size: clamp(20px, 2.8vmin, 34px);
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+  .success-box p {
+    color: #444;
+    font-size: clamp(15px, 1.7vmin, 22px);
+    margin-bottom: 22px;
+    font-weight: bold;
+  }
+
+  #screen-final { justify-content: center; align-items: center; }
+
+  .final-screen {
+    text-align: center;
+    padding: clamp(4px, 1vh, 15px) clamp(8px, 1.5vw, 20px);
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(6px, 1.2vh, 16px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .final-screen h1 {
+    font-size: clamp(22px, 3.6vmin, 48px);
+    color: #16a34a;
+    margin: 0;
+    line-height: 1.15;
+    text-shadow: 3px 3px 0 #fff, 5px 5px 0 rgba(0,0,0,0.1);
+    flex-shrink: 0;
+    animation: pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .final-screen .subtitle { margin-bottom: 0; flex-shrink: 0; }
+
+  .final-image-wrapper {
+    max-width: min(1200px, 96vw);
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: clamp(28px, 4vh, 40px) auto 0;
+    background: #fff;
+    border-radius: 25px;
+    padding: clamp(4px, 0.8vmin, 8px);
+    box-shadow: 0 10px 0 rgba(0,0,0,0.15);
+    border: clamp(3px, 0.6vmin, 5px) solid #27ae60;
+    position: relative;
+    animation: pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .final-image-wrapper .icon-magnifier,
+  .final-image-wrapper .icon-star {
+    position: absolute;
+    top: -34px;
+    font-size: clamp(36px, 5.2vmin, 58px);
+    animation: wiggle 2.4s ease-in-out infinite;
+    filter: drop-shadow(2px 3px 0 #fff) drop-shadow(0 0 2px rgba(0,0,0,0.15));
+    z-index: 3;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+  }
+  .final-image-wrapper .icon-magnifier { left: -18px; }
+  .final-image-wrapper .icon-star      { right: -18px; animation-direction: reverse; }
+
+  .final-img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 15px;
+  }
+
+  .final-screen > .btn { flex-shrink: 0; }
+
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-8px) rotate(-2deg); }
+    40%     { transform: translateX(8px) rotate(2deg); }
+    60%     { transform: translateX(-5px) rotate(-1deg); }
+    80%     { transform: translateX(5px) rotate(1deg); }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.05); }
+  }
+  @keyframes bgShift {
+    0%,100% { background-position: 0% 50%; }
+    50%     { background-position: 100% 50%; }
+  }
+
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    font-size: 24px;
+    z-index: 999;
+    animation: sparkleFly 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes sparkleFly {
+    0%   { opacity: 1; transform: translate(0,0) scale(0.5) rotate(0deg); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.4) rotate(360deg); }
+  }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.6);
+    transform: scale(0);
+    animation: rippleEffect 0.6s ease-out;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  @keyframes rippleEffect {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  @media (max-width: 850px) {
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    .items-grid { grid-template-columns: repeat(2, 1fr); }
+    .order-item { min-width: 170px; max-width: 230px; }
+  }
+  @media (max-width: 550px) {
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    .items-grid { grid-template-columns: repeat(2, 1fr); }
+    .prof-card .prof-img { max-width: 80px; height: 80px; }
+    .order-item { min-width: 150px; max-width: 200px; }
+    .order-item .tool-img { width: clamp(140px, 22vmin, 220px); height: clamp(140px, 22vmin, 220px); }
+    .board-wrapper::before, .board-wrapper::after { display: none; }
+    .puzzle-wrapper .icon-magnifier,
+    .puzzle-wrapper .icon-magnifier2,
+    .final-image-wrapper .icon-magnifier,
+    .final-image-wrapper .icon-star {
+      font-size: 28px;
+      top: -22px;
+    }
+    .puzzle-wrapper .icon-magnifier,
+    .final-image-wrapper .icon-magnifier { left: -8px; }
+    .puzzle-wrapper .icon-magnifier2,
+    .final-image-wrapper .icon-star { right: -8px; }
+    h1 { padding: 0 55px 0 10px; }
+  }
+  @media (max-width: 380px) {
+    .cards-grid, .items-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-height: 500px) and (orientation: landscape) {
+    .board-img { max-height: 42vh; }
+    .corner-whale { width: 42px; height: 42px; }
+  }
+  @media (max-height: 620px) {
+    .final-screen { gap: clamp(4px, 0.8vh, 10px); }
+    .final-quote .quote { font-size: clamp(13px, 2vmin, 24px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<audio id="bgMusic" loop preload="auto" src="music.mp3"></audio>
+
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Включить/выключить музыку">🔇</button>
+
+<button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Полноэкранный режим">
+  <span class="fs-icon" id="fsIcon">⛶</span>
+  <span class="fs-label" id="fsLabel">На весь экран</span>
+</button>
+
+<!-- ЭКРАН 1: СТАРТ -->
+<div class="screen active" id="screen-start">
+  <img src="whale.png" alt="Кит" class="corner-whale">
+  <div class="start-wrapper">
+    <h1 class="start-title">🌟 Игра <span class="game-name">«Мир профессий»</span></h1>
+    <div class="board-wrapper">
+      <img src="board.png" alt="Игровое поле «Мир профессий»" class="board-img">
+    </div>
+    <button class="start-btn" onclick="showScreen('screen-puzzle')">Старт</button>
+    <div class="start-tip">💡 Нажми «Старт», чтобы начать игру!</div>
+  </div>
+</div>
+
+<!-- ЭКРАН 2: ПУТАНИЦА -->
+<div class="screen" id="screen-puzzle">
+  <img src="whale.png" alt="Кит" class="corner-whale">
+  <h1>❓ <span class="accent">Путаница</span> в мире профессий!</h1>
+  <p class="motto">✨ «За всякое дело берись смело» ✨</p>
+  <div class="task-box">
+    <div class="task-text">
+      Внимательно посмотри на картинку.<br>
+      <b>Найди ошибки</b> — что перепутано у каждой профессии?<br>
+      Скажи, <b>как должно быть на самом деле</b>!
+    </div>
+  </div>
+  <div class="puzzle-wrapper">
+    <span class="icon-magnifier">🔍</span>
+    <span class="icon-magnifier2">🔍</span>
+    <img src="puzzle.png" alt="Путаница в мире профессий" class="puzzle-img">
+  </div>
+  <div class="btn-row">
+    <button class="btn purple" onclick="goToMenu()">➡️ Перейти к заданиям</button>
+  </div>
+</div>
+
+<!-- ЭКРАН 3: ВЫБОР КАРТОЧЕК -->
+<div class="screen" id="screen-menu">
+  <img src="whale.png" alt="Кит" class="corner-whale">
+  <h1>🎯 Выбери карточку</h1>
+  <p class="subtitle">Нажми на <b style="color:#8e44ad;">фиолетовую</b> или <b style="color:#27ae60;">зелёную</b> карточку у любой профессии</p>
+  <div class="cards-grid" id="cardsGrid"></div>
+  <div class="progress-bar" id="progressBar">Выполнено: 0 / 12</div>
+  <div class="btn-row" style="margin-top: 20px;">
+    <button class="next-btn" onclick="goToFinal()">Далее</button>
+  </div>
+</div>
+
+<!-- ЭКРАН 4: ЗАДАНИЕ -->
+<div class="screen" id="screen-task">
+  <img src="whale.png" alt="Кит" class="corner-whale">
+  <div class="task-container">
+    <div class="task-header" id="taskHeader"></div>
+    <div class="task-body">
+      <div class="task-question" id="taskQuestion"></div>
+      <div class="order-hint" id="orderHint" style="display:none;">👉 Нажимай на карточки по порядку: сначала что делают первым, потом вторым и так далее</div>
+      <div class="items-grid" id="itemsGrid"></div>
+      <div class="order-row" id="orderRow" style="display:none;"></div>
+      <div class="btn-row">
+        <button class="btn blue" onclick="goToMenu()">← Назад к карточкам</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ЭКРАН 5: ФИНАЛ -->
+<div class="screen" id="screen-final">
+  <img src="whale.png" alt="Кит" class="corner-whale">
+  <div class="final-screen">
+    <h1>🏆 Ты справился! Молодец!</h1>
+    <p class="subtitle">Ура! Все задания пройдены! Теперь в мире профессий — всё на своих местах!</p>
+    <div class="final-image-wrapper">
+      <span class="icon-magnifier">🔍</span>
+      <span class="icon-star">⭐</span>
+      <img src="final.png" alt="Мир профессий — всё на своих местах" class="final-img">
+    </div>
+    <div class="final-quote">
+      <span class="emoji-line">🎉 💪 ✨</span>
+      <div class="quote">«Сделал дело — гуляй смело!»</div>
+    </div>
+    <div class="final-btn-row">
+      <button class="btn purple" onclick="goToMenu()">← Вернуться к заданиям</button>
+      <button class="btn" onclick="resetAll()">🔄 Играть снова</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОКНО УСПЕХА -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <span class="big-emoji" id="successEmoji">🎉</span>
+    <h2 id="successTitle">Отлично!</h2>
+    <p id="successText">Задание выполнено!</p>
+    <button class="btn" onclick="closeSuccess()">Продолжить</button>
+  </div>
+</div>
+
+<script>
+const IMG = {
+  povar:       'povar.png',
+  teacher:     'teacher.png',
+  doctor:      'doctor.png',
+  programmer:  'programmer.png',
+  mechanic:    'mechanic.png',
+  firefighter: 'firefighter.png'
+};
+
+const SCREWDRIVER_SVG = `
+<svg class="tool-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="handle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6b6b"/>
+      <stop offset="1" stop-color="#c0392b"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d0d0d0"/>
+      <stop offset="0.5" stop-color="#a0a0a0"/>
+      <stop offset="1" stop-color="#707070"/>
+    </linearGradient>
+  </defs>
+  <rect x="24" y="4" width="16" height="26" rx="4" fill="url(#handle)" stroke="#7b241c" stroke-width="1.5"/>
+  <rect x="24" y="10" width="16" height="2" fill="#7b241c" opacity="0.4"/>
+  <rect x="24" y="16" width="16" height="2" fill="#7b241c" opacity="0.4"/>
+  <rect x="24" y="22" width="16" height="2" fill="#7b241c" opacity="0.4"/>
+  <rect x="29" y="30" width="6" height="22" fill="url(#metal)" stroke="#5a5a5a" stroke-width="1"/>
+  <path d="M29 52 L35 52 L33.5 60 L32 62 L30.5 60 Z" fill="#909090" stroke="#5a5a5a" stroke-width="1"/>
+</svg>
+`;
+
+const professions = [
+  { id:'povar', name:'Повар', img:IMG.povar,
+    purple:{ question:'Повар потерял инструменты. Выбери и назови только то, что нужно на кухне!',
+      items:[
+        {img:'items/polovnik.png', label:'Половник', correct:true},
+        {emoji:'💉', label:'Шприц',    correct:false},
+        {emoji:'🔪', label:'Нож',      correct:true},
+        {emoji:'🔨', label:'Молоток',  correct:false},
+        {emoji:'🍲', label:'Кастрюля', correct:true},
+        {emoji:'📏', label:'Линейка',  correct:false}
+      ]},
+    yellow:{ question:'Расставь по порядку: что повар делает сначала? Выбери и назови!',
+      items:[
+        {img:'items/povar_pomyt.png',   label:'Помыть овощи', order:1},
+        {img:'items/povar_narezat.png', label:'Нарезать',     order:2},
+        {img:'items/povar_svarit.png',  label:'Сварить',      order:3},
+        {img:'items/povar_podat.png',   label:'Подать',       order:4}
+      ]}
+  },
+  { id:'teacher', name:'Учитель', img:IMG.teacher,
+    purple:{ question:'Что нужно учителю для урока? Выбери и назови правильные предметы!',
+      items:[
+        {emoji:'📚', label:'Учебник',      correct:true},
+        {emoji:'🔧', label:'Гаечный ключ', correct:false},
+        {emoji:'✏️', label:'Карандаш',     correct:true},
+        {emoji:'🩺', label:'Стетоскоп',    correct:false},
+        {emoji:'📒', label:'Тетрадь',      correct:true},
+        {emoji:'🚒', label:'Пожарный шланг', correct:false}
+      ]},
+    yellow:{ question:'Расставь по порядку: как учитель ведёт урок? Выбери и назови!',
+      items:[
+        {img:'items/teacher_pozdorovatsya.png', label:'Поздороваться',    order:1},
+        {img:'items/teacher_obyasnit.png',      label:'Объяснить тему',   order:2},
+        {img:'items/teacher_dat_zadanie.png',   label:'Дать задание',     order:3},
+        {img:'items/teacher_proverit.png',      label:'Проверить работы', order:4}
+      ]}
+  },
+  { id:'doctor', name:'Врач', img:IMG.doctor,
+    purple:{ question:'Врач потерял инструменты. Выбери и назови то, что нужно для осмотра!',
+      items:[
+        {emoji:'🩺', label:'Стетоскоп',  correct:true},
+        {emoji:'🍳', label:'Сковорода',  correct:false},
+        {emoji:'💉', label:'Шприц',      correct:true},
+        {emoji:'🔨', label:'Молоток',    correct:false},
+        {emoji:'🌡️', label:'Градусник',  correct:true},
+        {emoji:'🖌️', label:'Кисточка',   correct:false}
+      ]},
+    yellow:{ question:'Расставь по порядку: как врач принимает пациента? Выбери и назови!',
+      items:[
+        {img:'items/doctor_pozdorovatsya.png', label:'Поздороваться',        order:1},
+        {img:'items/doctor_izmerit.png',       label:'Измерить температуру', order:2},
+        {img:'items/doctor_poslushat.png',     label:'Послушать',            order:3},
+        {img:'items/doctor_recept.png',        label:'Назначить лечение',    order:4}
+      ]}
+  },
+  { id:'programmer', name:'Программист', img:IMG.programmer,
+    purple:{ question:'Программист собирается на работу. Выбери и назови то, что ему нужно!',
+      items:[
+        {emoji:'💻', label:'Ноутбук',        correct:true},
+        {emoji:'🍳', label:'Сковорода',      correct:false},
+        {emoji:'🖱️', label:'Мышка',          correct:true},
+        {emoji:'🚒', label:'Пожарная машина', correct:false},
+        {emoji:'⌨️', label:'Клавиатура',     correct:true},
+        {emoji:'💉', label:'Шприц',          correct:false}
+      ]},
+    yellow:{ question:'Расставь по порядку: как программист создаёт программу? Выбери и назови!',
+      items:[
+        {img:'items/prog_ideya.png',  label:'Придумать идею',      order:1},
+        {img:'items/prog_kod.png',    label:'Написать код',        order:2},
+        {img:'items/prog_zapusk.png', label:'Запустить программу', order:3}
+      ]}
+  },
+  { id:'mechanic', name:'Автослесарь', img:IMG.mechanic,
+    purple:{ question:'Автослесарь готовит инструменты. Выбери и назови то, что ему пригодится!',
+      items:[
+        {emoji:'🔧', label:'Гаечный ключ', correct:true},
+        {emoji:'🩺', label:'Стетоскоп',    correct:false},
+        {emoji:'🔨', label:'Молоток',      correct:true},
+        {emoji:'📚', label:'Учебник',      correct:false},
+        {svg:  SCREWDRIVER_SVG, label:'Отвёртка', correct:true},
+        {img:'items/polovnik.png', label:'Половник', correct:false}
+      ]},
+    yellow:{ question:'Расставь по порядку: как автослесарь чинит машину? Выбери и назови!',
+      items:[
+        {img:'items/mech_osmotr.png', label:'Найти поломку',    order:1},
+        {img:'items/mech_remont.png', label:'Починить машину',  order:2},
+        {img:'items/mech_gotovo.png', label:'Проверить работу', order:3}
+      ]}
+  },
+  { id:'firefighter', name:'Пожарный', img:IMG.firefighter,
+    purple:{ question:'Пожарный собирается на вызов. Выбери и назови то, что ему нужно взять!',
+      items:[
+        {emoji:'🚒', label:'Пожарная машина', correct:true},
+        {emoji:'📚', label:'Учебник',         correct:false},
+        {emoji:'🧯', label:'Огнетушитель',    correct:true},
+        {emoji:'🍳', label:'Сковорода',       correct:false},
+        {emoji:'🪓', label:'Топорик',         correct:true},
+        {emoji:'💻', label:'Ноутбук',         correct:false}
+      ]},
+    yellow:{ question:'Расставь по порядку: что делает пожарный на вызове? Выбери и назови!',
+      items:[
+        {img:'items/fire_vyzov.png',    label:'Получить вызов', order:1},
+        {img:'items/fire_priehat.png',  label:'Приехать',       order:2},
+        {img:'items/fire_potushit.png', label:'Потушить пожар', order:3}
+      ]}
+  }
+];
+
+let state = {
+  donePurple: [],
+  doneYellow: [],
+  currentProf: null,
+  currentColor: null
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function renderMenu() {
+  const grid = document.getElementById('cardsGrid');
+  grid.innerHTML = '';
+
+  professions.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'prof-card';
+
+    const purpleDone = state.donePurple.includes(p.id);
+    const yellowDone = state.doneYellow.includes(p.id);
+
+    card.innerHTML = `
+      <img src="${p.img}" alt="${p.name}" class="prof-img">
+      <div class="prof-name">${p.name}</div>
+      <div class="color-btns">
+        <button class="color-btn purple ${purpleDone ? 'done' : ''}"
+                data-prof="${p.id}" data-color="purple"
+                aria-label="Фиолетовая карточка: ${p.name}"
+                ${purpleDone ? 'disabled' : ''}></button>
+        <button class="color-btn green ${yellowDone ? 'done' : ''}"
+                data-prof="${p.id}" data-color="yellow"
+                aria-label="Зелёная карточка: ${p.name}"
+                ${yellowDone ? 'disabled' : ''}></button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('.color-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (btn.classList.contains('done') || btn.disabled) return;
+      createRipple(e, btn);
+      setTimeout(() => openTask(btn.dataset.prof, btn.dataset.color), 120);
+    });
+  });
+
+  const done = state.donePurple.length + state.doneYellow.length;
+  document.getElementById('progressBar').textContent = `Выполнено: ${done} / 12`;
+}
+
+function createRipple(e, btn) {
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  ripple.style.width = ripple.style.height = size + 'px';
+  const x = (e.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
+  const y = (e.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
+  ripple.style.left = x + 'px';
+  ripple.style.top = y + 'px';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 650);
+}
+
+function spawnSparkles(x, y, count = 8) {
+  const emojis = ['✨', '⭐', '🌟', '💫'];
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('span');
+    s.className = 'sparkle';
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    s.style.left = x + 'px';
+    s.style.top = y + 'px';
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+    const dist = 80 + Math.random() * 80;
+    s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1100);
+  }
+}
+
+function openTask(profId, color) {
+  const prof = professions.find(p => p.id === profId);
+  const task = prof[color];
+
+  state.currentProf = profId;
+  state.currentColor = color;
+
+  const header = document.getElementById('taskHeader');
+  header.className = 'task-header ' + (color === 'purple' ? 'purple' : 'green');
+  header.innerHTML = `
+    <img src="${prof.img}" alt="${prof.name}" class="header-img">
+    <span>${prof.name}</span>
+  `;
+
+  document.getElementById('taskQuestion').textContent = task.question;
+
+  const itemsGrid = document.getElementById('itemsGrid');
+  const orderRow = document.getElementById('orderRow');
+  const orderHint = document.getElementById('orderHint');
+
+  itemsGrid.innerHTML = '';
+  orderRow.innerHTML = '';
+
+  if (color === 'purple') {
+    itemsGrid.style.display = 'grid';
+    orderRow.style.display = 'none';
+    orderHint.style.display = 'none';
+    renderChoiceTask(task, itemsGrid);
+  } else {
+    itemsGrid.style.display = 'none';
+    orderRow.style.display = 'flex';
+    orderHint.style.display = 'block';
+    renderOrderTask(task, orderRow);
+  }
+
+  showScreen('screen-task');
+}
+
+function renderChoiceTask(task, grid) {
+  let found = 0;
+  const total = task.items.filter(i => i.correct).length;
+
+  const shuffledItems = shuffle(task.items);
+
+  shuffledItems.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'item';
+
+    let visual;
+    if (item.svg) {
+      visual = item.svg;
+    } else if (item.img) {
+      visual = `<img src="${item.img}" alt="${item.label}" class="tool-img">`;
+    } else {
+      visual = `<span class="emoji">${item.emoji}</span>`;
+    }
+
+    el.innerHTML = `
+      ${visual}
+      <span class="label">${item.label}</span>
+    `;
+
+    el.onclick = (e) => {
+      if (el.classList.contains('correct') || el.classList.contains('removed') || el.classList.contains('wrong')) return;
+
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      if (item.correct) {
+        el.classList.add('correct');
+        found++;
+        spawnSparkles(cx, cy, 6);
+        duckMusic();
+        playCorrectSound();
+        if (found === total) setTimeout(() => { restoreMusic(); onTaskComplete(); }, 700);
+      } else {
+        el.classList.add('wrong');
+        duckMusic();
+        playWrongSound();
+        setTimeout(() => {
+          el.classList.add('removed');
+          restoreMusic();
+        }, 600);
+      }
+    };
+    grid.appendChild(el);
+  });
+}
+
+function renderOrderTask(task, row) {
+  const shuffled = shuffle(task.items);
+  let nextOrder = 1;
+
+  shuffled.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'order-item';
+
+    let visual;
+    if (item.svg) {
+      visual = item.svg;
+    } else if (item.img) {
+      visual = `<img src="${item.img}" alt="${item.label}" class="tool-img">`;
+    } else {
+      visual = `<span class="emoji">${item.emoji}</span>`;
+    }
+
+    el.innerHTML = `
+      ${visual}
+      <span class="label">${item.label}</span>
+    `;
+
+    el.onclick = () => {
+      if (el.classList.contains('ordered') || el.classList.contains('wrong')) return;
+
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      if (item.order === nextOrder) {
+        el.classList.add('ordered');
+        el.setAttribute('data-order', nextOrder);
+        nextOrder++;
+        spawnSparkles(cx, cy, 5);
+        duckMusic();
+        playStepSound(nextOrder);
+        setTimeout(restoreMusic, 400);
+        if (nextOrder > task.items.length) setTimeout(onTaskComplete, 800);
+      } else {
+        el.classList.add('wrong');
+        duckMusic();
+        playWrongSound();
+        setTimeout(() => { el.classList.remove('wrong'); restoreMusic(); }, 800);
+      }
+    };
+    row.appendChild(el);
+  });
+}
+
+function onTaskComplete() {
+  const prof = professions.find(p => p.id === state.currentProf);
+
+  if (state.currentColor === 'purple') {
+    if (!state.donePurple.includes(prof.id)) state.donePurple.push(prof.id);
+  } else {
+    if (!state.doneYellow.includes(prof.id)) state.doneYellow.push(prof.id);
+  }
+
+  const totalDone = state.donePurple.length + state.doneYellow.length;
+  const isFinished = totalDone === professions.length * 2;
+
+  playSuccessSound();
+
+  showSuccess(
+    state.currentColor === 'purple' ? '🎉' : '⭐',
+    `Отлично! ${prof.name} — задание выполнено!`,
+    state.currentColor === 'purple' ? 'Задание с предметами пройдено!' : 'Задание с порядком действий пройдено!',
+    () => {
+      closeSuccess();
+      if (isFinished) {
+        showScreen('screen-final');
+        setTimeout(() => playVictorySound(), 400);
+      } else {
+        goToMenu();
+      }
+    }
+  );
+}
+
+function goToMenu() {
+  state.currentProf = null;
+  state.currentColor = null;
+  document.getElementById('itemsGrid').innerHTML = '';
+  document.getElementById('orderRow').innerHTML = '';
+  renderMenu();
+  showScreen('screen-menu');
+}
+
+function goToFinal() {
+  showScreen('screen-final');
+  setTimeout(() => playVictorySound(), 400);
+}
+
+function showSuccess(emoji, title, text, onClose) {
+  document.getElementById('successEmoji').textContent = emoji;
+  document.getElementById('successTitle').textContent = title;
+  document.getElementById('successText').textContent = text;
+  document.getElementById('successOverlay').classList.add('show');
+  window._onSuccessClose = onClose;
+}
+
+function closeSuccess() {
+  document.getElementById('successOverlay').classList.remove('show');
+  if (window._onSuccessClose) {
+    const cb = window._onSuccessClose;
+    window._onSuccessClose = null;
+    setTimeout(cb, 250);
+  }
+}
+
+function resetAll() {
+  state = { donePurple: [], doneYellow: [], currentProf: null, currentColor: null };
+  renderMenu();
+  showScreen('screen-start');
+}
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement ||
+            document.mozFullScreenElement || document.msFullscreenElement);
+}
+
+function toggleFullscreen() {
+  if (!isFullscreen()) {
+    const el = document.documentElement;
+    const request = el.requestFullscreen || el.webkitRequestFullscreen ||
+                    el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (request) {
+      request.call(el).catch(err => {
+        console.warn('Не удалось войти в полноэкранный режим:', err);
+      });
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen ||
+                 document.mozCancelFullScreen || document.msExitFullscreen;
+    if (exit) {
+      exit.call(document).catch(err => {
+        console.warn('Не удалось выйти из полноэкранного режима:', err);
+      });
+    }
+  }
+}
+
+function updateFullscreenBtn() {
+  const btn = document.getElementById('fullscreenBtn');
+  const icon = document.getElementById('fsIcon');
+  const label = document.getElementById('fsLabel');
+  if (isFullscreen()) {
+    btn.classList.add('is-fullscreen');
+    icon.textContent = '⤢';
+    label.textContent = 'Выйти';
+    btn.title = 'Выйти из полноэкранного режима';
+  } else {
+    btn.classList.remove('is-fullscreen');
+    icon.textContent = '⛶';
+    label.textContent = 'На весь экран';
+    btn.title = 'Полноэкранный режим';
+  }
+}
+
+['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+  document.addEventListener(evt, updateFullscreenBtn);
+});
+
+document.addEventListener('dblclick', (e) => {
+  if (e.target.closest('button, a, input, .item, .order-item, .color-btn')) return;
+  toggleFullscreen();
+});
+
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try {
+      _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { return null; }
+  }
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function playTone({ freq, type = 'sine', duration = 0.3, volume = 0.15, attack = 0.01, release = 0.2, delay = 0, detune = 0 }) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+
+  const now = ctx.currentTime + delay;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  if (detune) osc.detune.setValueAtTime(detune, now);
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(volume, now + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + release);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + duration + release + 0.05);
+}
+
+function playCorrectSound() {
+  playTone({ freq: 523.25, type: 'sine', duration: 0.18, volume: 0.12, attack: 0.01, release: 0.25, delay: 0 });
+  playTone({ freq: 659.25, type: 'sine', duration: 0.18, volume: 0.10, attack: 0.01, release: 0.25, delay: 0.08 });
+  playTone({ freq: 783.99, type: 'sine', duration: 0.22, volume: 0.10, attack: 0.01, release: 0.30, delay: 0.16 });
+}
+
+function playStepSound(step) {
+  const scale = [523.25, 587.33, 659.25, 783.99, 880];
+  const freq = scale[Math.min(step - 1, scale.length - 1)];
+  playTone({ freq, type: 'triangle', duration: 0.15, volume: 0.11, attack: 0.008, release: 0.22 });
+}
+
+function playWrongSound() {
+  playTone({ freq: 196.00, type: 'sine', duration: 0.15, volume: 0.10, attack: 0.005, release: 0.18, delay: 0 });
+  playTone({ freq: 146.83, type: 'sine', duration: 0.20, volume: 0.09, attack: 0.005, release: 0.22, delay: 0.06 });
+}
+
+function playSuccessSound() {
+  playTone({ freq: 523.25, type: 'sine', duration: 0.15, volume: 0.13, attack: 0.01, release: 0.20, delay: 0 });
+  playTone({ freq: 659.25, type: 'sine', duration: 0.15, volume: 0.13, attack: 0.01, release: 0.20, delay: 0.10 });
+  playTone({ freq: 783.99, type: 'sine', duration: 0.15, volume: 0.13, attack: 0.01, release: 0.20, delay: 0.20 });
+  playTone({ freq: 1046.50, type: 'sine', duration: 0.30, volume: 0.14, attack: 0.01, release: 0.40, delay: 0.30 });
+}
+
+function playVictorySound() {
+  const notes = [
+    { f: 523.25, d: 0.00 },
+    { f: 659.25, d: 0.12 },
+    { f: 783.99, d: 0.24 },
+    { f: 1046.50, d: 0.36 },
+    { f: 783.99, d: 0.52 },
+    { f: 1046.50, d: 0.64 }
+  ];
+  notes.forEach(n => {
+    playTone({ freq: n.f, type: 'sine', duration: 0.18, volume: 0.13, attack: 0.01, release: 0.30, delay: n.d });
+    playTone({ freq: n.f * 2, type: 'sine', duration: 0.12, volume: 0.05, attack: 0.01, release: 0.20, delay: n.d });
+  });
+}
+
+const bgMusic = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+const MUSIC_NORMAL = 0.25;
+const MUSIC_DUCKED = 0.06;
+let musicStarted = false;
+let duckTimer = null;
+let fadeRaf = null;
+
+function fadeMusic(target, ms = 350) {
+  if (!bgMusic) return;
+  if (fadeRaf) cancelAnimationFrame(fadeRaf);
+  const start = bgMusic.volume;
+  const startTime = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - startTime) / ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    bgMusic.volume = Math.max(0, Math.min(1, start + (target - start) * eased));
+    if (t < 1) fadeRaf = requestAnimationFrame(step);
+    else fadeRaf = null;
+  }
+  fadeRaf = requestAnimationFrame(step);
+}
+
+function duckMusic() {
+  if (!musicStarted) return;
+  if (duckTimer) clearTimeout(duckTimer);
+  fadeMusic(MUSIC_DUCKED, 150);
+  duckTimer = setTimeout(restoreMusic, 550);
+}
+
+function restoreMusic() {
+  if (!musicStarted) return;
+  if (duckTimer) { clearTimeout(duckTimer); duckTimer = null; }
+  fadeMusic(MUSIC_NORMAL, 500);
+}
+
+function startMusic() {
+  if (musicStarted) return;
+  bgMusic.volume = 0;
+  bgMusic.play().then(() => {
+    musicStarted = true;
+    fadeMusic(MUSIC_NORMAL, 1200);
+    musicBtn.textContent = '🔊';
+    musicBtn.classList.add('playing');
+  }).catch(err => {
+    console.warn('Автозапуск музыки заблокирован браузером:', err);
+  });
+}
+
+function toggleMusic() {
+  if (bgMusic.paused) {
+    bgMusic.play().then(() => {
+      musicStarted = true;
+      fadeMusic(MUSIC_NORMAL, 500);
+      musicBtn.textContent = '🔊';
+      musicBtn.classList.add('playing');
+    }).catch(() => {});
+  } else {
+    bgMusic.pause();
+    musicBtn.textContent = '🔇';
+    musicBtn.classList.remove('playing');
+  }
+}
+
+startMusic();
+
+['click', 'touchstart', 'keydown'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    if (!musicStarted) startMusic();
+  }, { once: true });
+});
+
+document.addEventListener('DOMContentLoaded', startMusic);
+
+renderMenu();
+updateFullscreenBtn();
+</script>
+
+</body>
+</html>
