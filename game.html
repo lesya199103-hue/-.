@@ -49,6 +49,23 @@
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
+  /* ===== ПОДПИСЬ РАЗРАБОТЧИКА ===== */
+  .developer-credit {
+    position: fixed;
+    bottom: clamp(4px, 1vh, 10px);
+    right: clamp(6px, 1.5vw, 14px);
+    font-family: 'Comic Sans MS', 'Nunito', Arial, sans-serif;
+    font-size: clamp(9px, 1.1vmin, 13px);
+    font-style: italic;
+    color: rgba(60, 40, 70, 0.35);
+    letter-spacing: 0.3px;
+    pointer-events: none;
+    user-select: none;
+    z-index: 150;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+    white-space: nowrap;
+  }
+
   .corner-whale {
     position: absolute;
     top: clamp(14px, 2.5vh, 26px);
@@ -1061,7 +1078,15 @@
     border-radius: 15px;
   }
 
-  .final-screen > .btn { flex-shrink: 0; }
+  .final-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
 
   @keyframes pop {
     0%   { transform: scale(1); }
@@ -1263,6 +1288,9 @@
     <button class="btn" onclick="closeSuccess()">Продолжить</button>
   </div>
 </div>
+
+<!-- ПОДПИСЬ РАЗРАБОТЧИКА -->
+<div class="developer-credit">Разработчик Карташова О.А.</div>
 
 <script>
 const IMG = {
@@ -1645,9 +1673,6 @@ function onTaskComplete() {
     if (!state.doneYellow.includes(prof.id)) state.doneYellow.push(prof.id);
   }
 
-  const totalDone = state.donePurple.length + state.doneYellow.length;
-  const isFinished = totalDone === professions.length * 2;
-
   playSuccessSound();
 
   showSuccess(
@@ -1656,12 +1681,8 @@ function onTaskComplete() {
     state.currentColor === 'purple' ? 'Задание с предметами пройдено!' : 'Задание с порядком действий пройдено!',
     () => {
       closeSuccess();
-      if (isFinished) {
-        showScreen('screen-final');
-        setTimeout(() => playVictorySound(), 400);
-      } else {
-        goToMenu();
-      }
+      // ВСЕГДА возвращаемся в меню карточек — даже после последнего задания
+      goToMenu();
     }
   );
 }
